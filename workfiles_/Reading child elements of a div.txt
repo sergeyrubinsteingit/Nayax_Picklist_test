@@ -1,0 +1,31 @@
+						//Reading child elements of a div //////////////////////////////////////////
+//						System.out.println("\n+++++++++++++++  INNER HTML READER - MACHINES +++++++++++++++++++\n");
+//						//Report file
+//						File childElementsList;
+//						String pathTochildElementsList = System.getProperty("user.dir")  + "\\htmlReportsDir\\childElementsList.txt";
+//						childElementsList = new File(pathTochildElementsList);
+//						if (childElementsList.exists()) {
+//							childElementsList.delete();
+//							webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+//						};//if
+//						childElementsList.createNewFile();
+//						
+//						webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+//						
+//						FileWriter fileWriter = new FileWriter(pathTochildElementsList);
+//						
+//						for (WebElement innerHtml : on_hand_bar) {
+//							List<WebElement> childElems = innerHtml.findElements(By.xpath("./child::*"));
+//							for (WebElement childEl : childElems) {
+//								System.out.println("\n" + childEl.getAttribute("type") + "\n");
+//								System.out.println("\n" + childEl.getText() + "\n");
+//								//Writes into file
+//								fileWriter.write("Child elements:\n" + childEl.getAttribute("type")
+//												+ "\n" + childEl.getText()
+//												+ "\n+++++++++++++++ +++++++++++++++++++ +++++++++++++++++++\n");
+//							};
+//						}//for
+//						webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+//						fileWriter.close();
+//						System.out.println("\n+++++++++++++++ +++++++++++++++++++ +++++++++++++++++++\n");
+						/////////////////////////////////////////////////////////////////////////////////////////////

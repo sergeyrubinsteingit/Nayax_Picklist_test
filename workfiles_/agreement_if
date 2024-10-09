@@ -1,0 +1,25 @@
+	if ((i==0&&form_element.isSelected()) || form_element.isEnabled()) {
+							if ((i==0&&form_element.isEnabled())) {
+								Actions_.moveToElement(form_element).click().perform();
+								if (form_element.isSelected()) {
+									System.out.println("\n<<<<<<<<<<< Form with id="+agreementFormElements[i]+" IS selected/enabled. >>>>>>>>>>>>\n");
+
+									DrawBorderAroundElement.DrawBorder(form_element, elementState=true);
+								};//if
+//							System.out.println("\n<<<<<<<<<<< Form with id="+agreementFormElements[i]+" IS selected/enabled. >>>>>>>>>>>>\n");
+//
+//							DrawBorderAroundElement.DrawBorder(form_element, elementState=true);
+						} else if ((i>0&&form_element.isDisplayed())){
+							TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.2 ));
+
+							if (form_element.isEnabled()) {
+								System.out.println("\n<<<<<<<<<<< Form with id="+agreementFormElements[i]+" IS NOT selected/enabled. >>>>>>>>>>>>\n");
+								DrawBorderAroundElement.DrawBorder(form_element, elementState=false);
+								TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.2 ));
+								Actions_.moveToElement(form_element).click().perform();
+							} else {
+								System.out.println("\n<<<<<<<<<<< Failed to click Continue button. Shut down. >>>>>>>>>>>>\n");
+								LoginIntoDcs.webDriver.quit();
+								System.exit(-1);
+							};//if							
+						};//if

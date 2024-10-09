@@ -1,0 +1,73 @@
+body
+{
+	background-color: #adbfdb;
+	font-family: Helvetica, sans-serif;
+}
+
+#container
+{
+	position: relative;	
+	margin-top: auto;
+	margin-bottom: auto;
+	margin-left: auto;
+    margin-right: auto;
+	width: 75%;
+	/* height: 95%; */
+	background-color: #42649e;
+	display: block;
+	overflow: auto;
+}
+
+#reportHeader
+{
+	position: relative;
+	display: block;
+	top: 5px;
+	left: 7%;
+	font-size: 14pt;
+	font-weight: bold;
+	color: white;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	margin-left: auto;
+    margin-right: auto;
+}
+
+#container > div, .screenShots, .screenShotsParagraph
+{
+	position: relative;
+	display: block;
+	width: 85%;
+	height: auto;
+	background-color: white;
+	/* margin: 0 auto; */
+	margin-top: 10px;
+	margin-bottom: 10px;
+	margin-left: auto;
+    margin-right: auto;
+    padding: 10px;
+    border-radius: 7px;
+	-moz-box-shadow:0px 5px 5px rgba(0,0,0,0.3);
+	-webkit-box-shadow:0px 5px 5px rgba(0,0,0,0.3);
+	box-shadow:0px 5px 5px rgba(0,0,0,0.3);
+}
+
+.screenShots
+{
+	cursor: pointer;
+}
+
+#divSubtitle
+{
+	font-size: 12pt;
+	font-weight: bold;
+	font-style: italic;
+	color: #3c8cc2;
+}
+
+.sectionTitle
+{
+	font-size: 16pt;
+	font-weight: bold;
+	color: #1e4963;
+}

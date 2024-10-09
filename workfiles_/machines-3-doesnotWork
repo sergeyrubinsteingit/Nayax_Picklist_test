@@ -1,0 +1,406 @@
+package testCases;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
+import ProgramFiles.OpenSelectedScreen;
+import ProgramFiles.LoginIntoDcs;
+import ProgramFiles.RunTestNG;
+import ProgramFiles.WaitAndNotify;
+import ProgramFiles.AppendScreenshotsToHTML;
+import ProgramFiles.ExtentRepTestReports;
+
+import ProgramFiles.NetTrafficControl;
+ 
+
+public class Machines {
+	
+	static WebDriver webDriver = LoginIntoDcs.webDriver;
+	static Actions actions_ = new Actions(webDriver);
+	static boolean awaitTestFinish = OpenSelectedScreen.awaitTestFinish = true;
+	static Object objectForSynch = OpenSelectedScreen.objectForSynch = new Object();
+	static WebElement stockTab = null;
+	static WebElement conf_ok_btn = null;
+	static WebElement selectedMenuEntry = null;
+	static JavascriptExecutor javascriptExecutor = (JavascriptExecutor)webDriver;
+	public static boolean statusFlag;
+	static ArrayList <WebElement> allEmptyDivs = new ArrayList<WebElement>();
+	static WebDriverWait webDriverWait = new WebDriverWait(webDriver, 100);
+	public static List<WebElement> menu_labels;
+//	static ArrayList <WebElement> selectedLabels = new ArrayList<WebElement>();
+	static ArrayList <String> selectedLabels = new ArrayList<String>();
+	static String classNameList [] = {"on_hand_container green_bg","on_hand_container red_bg"};			
+//	static String classNameList [] = {"on_hand_container red_bg","on_hand_container green_bg","on_hand_container red_bg"};			
+
+
+	public static void TestSets(String className) throws InterruptedException {
+		
+		System.out.println(" =========== MACHINES ========== ");
+		
+		List<WebElement> k_link = webDriver.findElements(By.className("k-link"));
+		int startIndex = 0;
+		// Removes element with no text
+		RemoveNoTextElements (k_link);
+		//Waiting for a function RemoveNoTextElements to end
+		WaitAndNotify.StartWait();
+		
+		//Gets traffic's current rate
+		NetTrafficControl.CheckTraffic.CheckTrafficRun();
+		ProgramFiles.WaitAndNotify.StartWait();
+		
+		for (int ii = 0; ii < k_link.size(); ii++) {
+			WebElement k_link_text = k_link.get(ii);
+
+			if (k_link_text.getText().contains("Dashboard")) {
+				// Index of the first tab in Machine's options
+				startIndex = k_link.indexOf(k_link_text );
+			} //if
+		} //for
+
+		System.out.println(" startIndex :::>> " + startIndex);
+				
+		//Click Products
+		for ( int i = startIndex; i < k_link.size(); i++ ) {
+			System.out.println(" k_link.get(i) :::%%%%> " + k_link.get(i).getText());			
+			if (k_link.get(i).getText().contains("Products Map")) {
+				actions_.moveToElement(k_link.get(i)).click().perform();
+			} //if
+		};//for
+				
+		//Checking Stock tab presence
+		stockTab = (WebElement) new FluentWait<WebDriver>(webDriver)
+		    .withTimeout(120,TimeUnit.SECONDS)
+		    .pollingEvery(3, TimeUnit.SECONDS)
+		    .ignoring(Exception.class)
+			.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[text()='Stock']")));
+		
+		// Move to the Stock tab and opens it
+		actions_.moveToElement(stockTab).build().perform();
+		
+		//Waiting is updated to the current traffic rate
+		TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.1 ));
+		
+		//Drop menu entries
+		menu_labels = webDriver.findElements(By
+				.cssSelector("div.k-animation-container")
+				.cssSelector("ul.k-group.k-menu-group.k-popup.k-reset")
+				.cssSelector("li.k-item.k-state-default")
+				.cssSelector("span.k-link")
+				.tagName("label"));
+//		menu_labels = webDriver.findElements(By.className("k-item")
+//				.className("k-link")
+//				.tagName("label"));
+//		TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.25 ));
+		
+		for (WebElement nextLabel : menu_labels) {
+			if (nextLabel.getText().contains("Empty Machine") || nextLabel.getText().contains("Full Machine")) {
+				selectedLabels.add(nextLabel.getText());
+			};//if
+		}//for
+		
+		TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.15 ));
+		
+		// Removes element with no text
+		RemoveNoTextElements (menu_labels);
+//			//Waiting for a function to end
+//		WaitAndNotify.StartWait();
+		
+		// Move to the Stock tab
+		actions_.moveToElement(stockTab).build().perform();
+	
+		
+//		try {
+			for (String lbl : selectedLabels) {
+				System.out.println(" selectedLabels ::: :::: >>> " + lbl);
+			};//for	
+			
+//			for (int i = selectedLabels.size()-1; i == selectedLabels.size()-2 ; i--) {
+			for (int i = 0; i == selectedLabels.size()-1; i++) {
+				
+				System.out.println(" selectedLabels ========= >>> " + selectedLabels.get(i));
+
+				// Move to the Stock tab
+//				actions_.moveToElement(stockTab).build().perform(); 
+				
+				// Using [JavascriptExecutor] as no other way worked due to permanent overlay of some other element (gray screen) over the desired element.
+				try {
+					selectedMenuEntry = (WebElement) new FluentWait<WebDriver>(webDriver)
+					    .withTimeout(120,TimeUnit.SECONDS)
+					    .pollingEvery(3, TimeUnit.SECONDS)
+					    .ignoring(Exception.class)
+						.until(ExpectedConditions.presenceOfElementLocated(By
+//							.until(ExpectedConditions.elementToBeClickable(By
+								.xpath(" //*[text()='" + selectedLabels.get(i) + "'] ")));
+//				.xpath(" //*[text()='" + selectedLabels.get(i).getText() + "'] ")));
+				} catch (Exception e) {
+					webDriver.quit();
+					e.printStackTrace();
+					System.exit(-1);
+				}
+				
+				
+				// Move to the Stock tab
+				actions_.moveToElement(selectedMenuEntry).click().build().perform();
+				
+				//Waiting is updated to the current traffic rate
+				TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.1 ));
+				
+//				javascriptExecutor.executeScript("arguments[0].click();", fullEmptyEntry);
+				
+				//Hovers a mouse over Stock tab
+//				String mouseOverScript = "if(document.createEvent){var evObj = document.createEvent('MouseEvents');"
+//						+"evObj.initEvent('mouseover', true, false); arguments[0].dispatchEvent(evObj);} "
+//						+"else if(document.createEventObject) { arguments[0].fireEvent('onmouseover');}";
+//				
+//				javascriptExecutor.executeScript(mouseOverScript, stockTab);
+				
+				System.out.println(" <<<-#### "+ menu_labels.get(i).getText().toUpperCase() +" click was performed ####->>> ");
+										
+
+				// For the Extent REport test label
+				String currentLabel = selectedLabels.get(i).toUpperCase();
+//				String currentLabel = menu_labels.get(i).getText().toUpperCase().toString();
+				LoginIntoDcs.classNameForReport = currentLabel + " %%%%%%%%%%";
+				
+				// Confirms the choice by clicking OK button
+				//Closes confirmation dialogs which pop up on select of Empty/Fill machine from the drop menu
+				ClickOKbutton ("After " + currentLabel + ", var 2");						
+				WaitAndNotify.StartWait();	
+				
+				
+//				TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.15 ));
+				
+				//Gets traffic rate
+//				ProgramFiles.NetTrafficControl.CheckTraffic.CheckTrafficRun();
+//				ProgramFiles.WaitAndNotify.StartWait();
+				
+				//Creates a list of web elements to check
+				AllDivsList();
+				ProgramFiles.WaitAndNotify.StartWait();
+				
+//				if (i == 7) {
+//
+//					//Draws border
+//					elementValidation(classNameList[0], i);
+//					ProgramFiles.WaitAndNotify.StartWait();
+//
+//				} else {
+//					
+//					//Draws border
+//					elementValidation(classNameList[1], i);
+//					ProgramFiles.WaitAndNotify.StartWait();
+//
+//				};//if
+				
+				//Draws border
+				try {
+					elementValidation(classNameList[i], i);
+				} catch (IOException | InterruptedException e) {
+					e.printStackTrace();
+				}
+				ProgramFiles.WaitAndNotify.StartWait();
+				
+				//Run test ng
+				RunTestNG.runTestNg();
+				WaitAndNotify.StartWait();
+				 
+				TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.15 ));
+				
+				//Screenshot
+				ProgramFiles.ScreenShotsMaker.ScreenShots(currentLabel, className);
+				WaitAndNotify.StartWait();
+				
+				//Hovers a mouse over Stock tab
+//				String mouseOverScript = "if(document.createEvent){var evObj = document.createEvent('MouseEvents');"
+//						+"evObj.initEvent('mouseover', true, false); arguments[0].dispatchEvent(evObj);} "
+//						+"else if(document.createEventObject) { arguments[0].fireEvent('onmouseover');}";
+//				
+//				javascriptExecutor.executeScript(mouseOverScript, stockTab);
+				
+				//Moves a mouse away from Stock tab
+//				String mouseOutScript = "if(document.createEvent){var evObj = document.createEvent('MouseEvents');"
+//						+"evObj.initEvent('mouseout', true, false); arguments[0].dispatchEvent(evObj);} "
+//						+"else if(document.createEventObject) { arguments[0].fireEvent('onmouseout');}";
+				
+//				javascriptExecutor.executeScript(mouseOutScript, stockTab);
+			
+				System.out.println(" <<<-&&& Machine was filled up &&&->>> ");
+			}; //for
+			
+			TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.1 ));
+			
+			//Appends to HTML report a div containing screenshots 
+			try {
+				AppendScreenshotsToHTML.AppendNewDiv(className);
+			} catch (ParserConfigurationException | SAXException | IOException | TransformerException e) {
+				e.printStackTrace();
+			}
+			WaitAndNotify.StartWait();
+
+//		} catch (Exception e1) {
+//					System.out.println(" <<<-&&& Menu's flow failed. &&&->>> ");
+//			e1.printStackTrace();
+//			webDriver.quit();
+//			System.exit(-1);
+//		}//try
+
+		System.out.println(" =========== TEST SETS for MachinesTestCase ENDED ========== ");
+		WaitAndNotify.NotifyAll();
+	}//TestSets
+	
+	static Object RemoveNoTextElements (List<WebElement> k_link) {
+		// Removes element with no text
+		for (int ii = 0; ii < k_link.size(); ii++) {
+			WebElement k_link_text = k_link.get(ii);
+			if (k_link_text.getText().length() == 0) {
+				k_link.remove(k_link_text);
+				ii--;
+			}//if
+		};//for
+		System.out.println(" \n<<<-   RemoveNoTextElements: NotifyAll   ->>>\n ");
+		WaitAndNotify.NotifyAll();
+		return k_link;
+	}//RemoveNoTextElements
+	
+	//Confirms the choice by clicking OK button
+	static void ClickOKbutton (String infoString) throws InterruptedException {
+		
+		// Using [JavascriptExecutor] as no other way worked due to permanent overlay of some other element (gray screen) over the desired element.
+		WebElement conf_ok_btn = (WebElement) new FluentWait<WebDriver>(webDriver)
+		        .withTimeout(33,TimeUnit.SECONDS)
+		        .pollingEvery(3, TimeUnit.SECONDS)
+		        .ignoring(Exception.class)
+				.until(ExpectedConditions.elementToBeClickable(By
+				.className("k-widget")
+				.className("k-window-content")
+				.id("conf_ok_btn")));
+		
+		if (conf_ok_btn.isDisplayed()) {
+			//Waiting is updated to the current traffic rate
+			TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.1 ));
+			javascriptExecutor.executeScript("arguments[0].click();", conf_ok_btn);
+			System.out.println(" <<<-@@@ Clicking OK button for @@@->>>\n " + infoString);
+			WaitAndNotify.NotifyAll();
+		} else {
+			System.out.println(" No dialog window to interact with. ");
+			actions_.moveToElement(stockTab).build().perform();
+		} //if
+		
+		WaitAndNotify.NotifyAll();
+			
+	};//ClickOKbutton
+	
+	
+	//Makes list of colored divs on screen
+	static List<WebElement> AllDivsList() throws InterruptedException {
+		System.out.println(" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  ALL DIVS LIST  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ");
+		//Waiting is updated to the current traffic rate
+		TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.1 ));
+		//Clears the list to avoid over-population of it
+		allEmptyDivs.clear();
+		
+		for(int i = 0; i < allEmptyDivs.size(); i++) {
+			System.out.println(" ((((((((((((((((((((((( allEmptyDivs "+i+" is ==== "+allEmptyDivs.get(i).getAttribute("class").toString()+ " ))))))))))))))))))))))) ");
+		};//for
+		
+		//Draws border around the element					
+		List <WebElement> redEmptyDivs = LoginIntoDcs.webDriver.findElements(By.cssSelector("div.on_hand_container.red_bg"));
+		List <WebElement> greenEmptyDivs = LoginIntoDcs.webDriver.findElements(By.cssSelector("div.on_hand_container.green_bg"));
+		allEmptyDivs.addAll(redEmptyDivs);
+		allEmptyDivs.addAll(greenEmptyDivs);
+		System.out.println(" \n<<<-####-  redEmptyDivs.size() =  "+redEmptyDivs.size()+"  -####->>>\n ");
+		System.out.println(" \n<<<-####-  allEmptyDivs.size() =  "+allEmptyDivs.size()+"  -####->>>\n ");
+		
+		for(int i = 0; i < allEmptyDivs.size(); i++) {
+			System.out.println(" <<<<<<<<<<<<<<<<<<<<<<<<<<< allEmptyDivs "+i+" is ==== "+allEmptyDivs.get(i).getAttribute("class").toString()+ " >>>>>>>>>>>>>>>>>>>>>>>>>>> ");
+		};//for
+		
+		WaitAndNotify.NotifyAll();
+		return allEmptyDivs;
+		};//AllDivsList
+					
+		//Selects and draws border around an object
+		static void elementValidation (String classNameString, int entryIndex) throws IOException, InterruptedException {
+			System.out.println(" \n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  ELEMENT VALIDATION  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ");
+			
+			//Updates current traffic rate
+			NetTrafficControl.CheckTraffic.CheckTrafficRun();
+			WaitAndNotify.StartWait();
+
+			System.out.println(" \n((((((((((((((((((((((((((((  allEmptyDivs.size() =  "+allEmptyDivs.size()+"  ))))))))))))))))))))))))))))\n ");
+
+			//Waiting is updated to the current traffic rate
+			TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.2 ));
+			
+			for(int ii = 0; ii < allEmptyDivs.size(); ii++) {
+				WebElement pickDiv = allEmptyDivs.get(ii);
+
+				for(int i = 0; i < allEmptyDivs.size(); i++) {
+					System.out.println(" ((((((((((((((((((((((( allEmptyDivs "+ allEmptyDivs.get(i).getAttribute("class").toString() +" ))))))))))))))))))))))) ");
+				};//for
+				
+				//Repeat attempts if an element is stale
+				boolean staleElementState = true;
+				int counter1 = 0;
+				
+				while(staleElementState){
+				  try{
+					System.out.println(" \n((((((((((((((((((((((( pickDiv is ==== "+pickDiv.getAttribute("class").toString()+ " )))))))))))))))))))))))\n ");
+					System.out.println(" <<<<<<<<< String classNameString ==== "+classNameString+ ", entryIndex === "+entryIndex+" >>>>>>>>>> ");
+					System.out.println(" <<<  FROM ELEMENT VALIDATION: allEmptyDivs :::::  "+pickDiv.getAttribute("class").toString()+"  >>> ");
+					//Draws border around an object
+					if (pickDiv.getAttribute("class").toString().equals(classNameString)) {
+						((JavascriptExecutor)LoginIntoDcs.webDriver)
+						.executeScript("arguments[0].style.border='3px solid #1d6e44'", pickDiv);
+						LoginIntoDcs.extentReportFlag = true;
+					} else {
+						((JavascriptExecutor)LoginIntoDcs.webDriver)
+						.executeScript("arguments[0].style.border='3px solid #ff3300'", pickDiv);
+						LoginIntoDcs.extentReportFlag = false;
+					};//if						
+					//Fires Extent Report
+					LoginIntoDcs.classNameForReport = selectedLabels.get(entryIndex).toUpperCase();
+//					LoginIntoDcs.classNameForReport = menu_labels.get(entryIndex).getText().toUpperCase();
+					ExtentRepTestReports extentRepTestReports = new ExtentRepTestReports();
+					extentRepTestReports.passedORfailed();
+					//Breaks the While cycle	     
+					staleElementState = false;
+				     
+				  } catch(StaleElementReferenceException e){
+					//Continues the While cycle
+				  	staleElementState = true;
+				  	TimeUnit.SECONDS.sleep((int) Math.round(NetTrafficControl.rateToInterval * 0.02 ));
+				    counter1++;
+				    if (counter1 > 3) {
+						System.out.println(" <<<<<<<<< Failed to find a tested element. Test is shot down. >>>>>>>>>> ");
+				    	webDriver.quit();
+				    	System.exit(-1);
+				    };//if
+				  }//try
+				}//while
+			};//for
+			WaitAndNotify.NotifyAll();
+		}//elementValidation
+			
+	
+}//////////////////////////////////////////////////***END***/////////////////////////////////////////////////////
+
+//STORAGE:
+//webDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.className(greenDiv.getAttribute("class").toString())));

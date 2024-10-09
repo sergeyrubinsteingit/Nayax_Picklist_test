@@ -1,0 +1,502 @@
+package testCases;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.Color;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.testng.annotations.Test;
+
+import ProgramFiles.MenuItemsList;
+import ProgramFiles.OpenSelectedScreen;
+import ProgramFiles.LoginIntoDcs;
+import ProgramFiles.RunTestNG;
+import ProgramFiles.ScreenShotsMaker;
+import ProgramFiles.WaitAndNotify;
+import ProgramFiles.AppendScreenshotsToHTML;
+import ProgramFiles.ExtentRepTestReports;
+ 
+
+public class Machines {
+	
+	static WebDriver webDriver = LoginIntoDcs.webDriver;
+	static Actions actions_ = new Actions(webDriver);
+	static boolean awaitTestFinish = OpenSelectedScreen.awaitTestFinish = true;
+	static Object objectForSynch = OpenSelectedScreen.objectForSynch = new Object();
+	static WebElement stockTab = null;
+	static WebElement conf_ok_btn = null;
+	static WebElement fullEmptyEntry = null;
+	static JavascriptExecutor javascriptExecutor = (JavascriptExecutor)webDriver;
+	public static boolean statusFlag;
+	static ArrayList <WebElement> allEmptyDivs = new ArrayList<WebElement>();
+	static List<WebElement> menu_labels;
+	
+//	@Test
+	public static void TestSets(String className) {
+		
+		System.out.println(" =========== MACHINES ========== ");
+		
+		List<WebElement> k_link = webDriver.findElements(By.className("k-link"));
+		int startIndex = 0;
+		// Removes element with no text
+		RemoveNoTextElements (k_link);
+		//Waiting for a function RemoveNoTextElements to end
+		WaitAndNotify.StartWait();
+		for (int ii = 0; ii < k_link.size(); ii++) {
+			WebElement k_link_text = k_link.get(ii);
+
+			if (k_link_text.getText().contains("Dashboard")) {
+				// Index of the first tab in Machine's options
+				startIndex = k_link.indexOf(k_link_text );
+			} //if
+
+		} //for
+
+		System.out.println(" startIndex :::>> " + startIndex);
+				
+		//Click Products
+		for ( int i = startIndex; i < k_link.size(); i++ ) {
+//			System.out.println(" k_link.get(i) :::%%%%> " + k_link.get(i).getText());			
+			if (k_link.get(i).getText().contains("Products Map")) {
+				actions_.moveToElement(k_link.get(i)).click().perform();
+			} //if
+		};//for
+				
+		//Checking Stock tab presence
+		stockTab = (WebElement) new FluentWait<WebDriver>(webDriver)
+		    .withTimeout(30,TimeUnit.SECONDS)
+		    .pollingEvery(3, TimeUnit.SECONDS)
+		    .ignoring(Exception.class)
+			.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[text()='Stock']")));
+		// Move to the Stock tab
+		actions_.moveToElement(stockTab).build().perform();
+		
+		webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+		
+		//Drop menu entries
+		menu_labels = webDriver.findElements(By.className("k-item")
+				.className("k-link")
+				.tagName("label"));
+		
+		webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+		
+		// Removes element with no text
+		RemoveNoTextElements (menu_labels);
+//			//Waiting for a function RemoveNoTextElements to end
+		WaitAndNotify.StartWait();
+		
+		// Move to the Stock tab
+		actions_.moveToElement(stockTab).build().perform();
+
+		//List of the tabs on Machines screen
+//		for (WebElement lbl : menu_labels) {
+//			System.out.println(" menu_labels :::>>> " + lbl.getText());
+//		};//for	
+		
+//		String redGreenClassNames [] = {"on_hand_container red_bg","on_hand_container green_bg","on_hand_container red_bg"};			
+//		String redGreenClassNames [] = {"on_hand_container.red_bg","on_hand_container.green_bg","on_hand_container.red_bg"};			
+
+
+		try {;
+			for (int i = 0; i < 2; i++) {
+				//Checking for the visibility of the Red div = Empty Machine status
+				
+				System.out.println(" <<<    MACHINES::: FIRST CHECK FOR THE FULL MACHINE STATE   >>> ");
+				
+				fullEmptyEntry = (WebElement) new FluentWait<WebDriver>(webDriver)
+			        .withTimeout(3,TimeUnit.SECONDS)
+			        .pollingEvery(1, TimeUnit.SECONDS)
+			        .ignoring(Exception.class)
+					.until(ExpectedConditions.visibilityOfElementLocated(By
+					.cssSelector("div.on_hand_container.red_bg")));  // That mean the status = "empty"
+//							.cssSelector("div[class=' "+ redGreenClassNames[0] +"']")));  // That mean the status = "empty"
+				
+//				webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+//				TimeUnit.MILLISECONDS.sleep(20);
+//				
+//				List <WebElement> greenFullDivs = LoginIntoDcs.webDriver.findElements(By.cssSelector("div.on_hand_container.green_bg"));
+//				List <WebElement> redEmptyDivs = LoginIntoDcs.webDriver.findElements(By.cssSelector("div.on_hand_container.red_bg"));
+//				System.out.println(" \n<<<-####-  redEmptyDivs.size() =  "+redEmptyDivs.size()+"  -####->>>\n ");
+//				System.out.println(" \n<<<-####-  greenFullDivs.size() =  "+greenFullDivs.size()+"  -####->>>\n ");
+				
+				// In case the status = "empty"
+				javascriptExecutor.executeScript("arguments[0].click();", fullEmptyEntry);
+
+//				webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+				TimeUnit.MILLISECONDS.sleep(20);
+				
+				ClickOKbutton ("After " + menu_labels.get(6).getText().toUpperCase() + ", var 1");// Confirms the choice by clicking OK button
+				WaitAndNotify.StartWait();
+				System.out.println(" <<<-####- Machines Test: ClickOKbutton  -####->>> ");
+				
+//				//Arranges a list of all checked div class names in this sector
+				TimeUnit.MILLISECONDS.sleep(20);
+				AllDivsList();
+				ProgramFiles.WaitAndNotify.StartWait();						
+//				
+//				//Invokes a function which draws a border around element colored according to validity of this element
+//				TimeUnit.MILLISECONDS.sleep(20);
+//				elementValidation("on_hand_container green_bg", 6);
+//				ProgramFiles.WaitAndNotify.StartWait();
+				
+				//Screenshot
+				ProgramFiles.ScreenShotsMaker.ScreenShots(menu_labels.get(6).getText().toUpperCase(), className);
+				WaitAndNotify.StartWait();
+				System.out.println(" <<<-####- Machines Test: ScreenShotsMaker.ScreenShots  -####->>> ");
+				
+				System.out.println(" <<<-&&& "+ menu_labels.get(6).getText().toUpperCase() +" had been clicked &&&->>> ");
+
+				//Fires Extent Report
+				LoginIntoDcs.extentReportFlag = true;
+				LoginIntoDcs.classNameForReport = menu_labels.get(6).getText().toUpperCase()  + " ###########";
+				ExtentRepTestReports extentRepTestReports = new ExtentRepTestReports();
+				extentRepTestReports.passedORfailed();
+
+			}//for
+				
+			WaitAndNotify.NotifyAll();
+										
+		} catch (Exception e) { // In case the status = "full"
+			try {
+				for (int i = 7; i >= 6; i--) {
+					System.out.println(" <<<-####->>> CASE "+ i +" <<-####->>> ");
+					// Using [JavascriptExecutor] as no other way worked due to permanent overlay of some other element (gray screen) over the desired element.
+					fullEmptyEntry = (WebElement) new FluentWait<WebDriver>(webDriver)
+				        .withTimeout(15,TimeUnit.SECONDS)
+				        .pollingEvery(3, TimeUnit.SECONDS)
+				        .ignoring(Exception.class)
+						.until(ExpectedConditions.elementToBeClickable(By
+						.xpath(" //*[text()='" + menu_labels.get(i).getText().toString() + "'] ")));
+					
+					javascriptExecutor.executeScript("arguments[0].click();", fullEmptyEntry);
+
+//					webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+					TimeUnit.MILLISECONDS.sleep(20);
+					
+					System.out.println(" <<<-#### "+ menu_labels.get(i).getText().toUpperCase() +" click was performed ####->>> ");
+											
+					// Confirms the choice by clicking OK button
+					String currentLabel = menu_labels.get(i).getText().toUpperCase().toString();
+					// For the Extent REport test label
+					LoginIntoDcs.classNameForReport = currentLabel + " %%%%%%%%%%";
+					
+					ClickOKbutton ("After " + currentLabel + ", var 2");						
+					WaitAndNotify.StartWait();
+					
+//					webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.SECONDS);//////////////////////////////////////////////////////////////////////////////////////////////////////////////////						
+//					TimeUnit.SECONDS.sleep(20);
+					
+					//Draws border around the element					
+//					List <WebElement> redEmptyDivs = LoginIntoDcs.webDriver.findElements(By.cssSelector("div.on_hand_container.red_bg"));
+//					List <WebElement> greenEmptyDivs = LoginIntoDcs.webDriver.findElements(By.cssSelector("div.on_hand_container.green_bg"));
+//					allEmptyDivs.addAll(redEmptyDivs);
+//					allEmptyDivs.addAll(greenEmptyDivs);
+//					System.out.println(" \n<<<-####-  redEmptyDivs.size() =  "+redEmptyDivs.size()+"  -####->>>\n ");
+//					System.out.println(" \n<<<-####-  allEmptyDivs.size() =  "+allEmptyDivs.size()+"  -####->>>\n ");
+					
+					if (i == 7) {
+//						List <WebElement> on_hand_bar = LoginIntoDcs.webDriver.findElements(By.cssSelector("div.on_hand_bar"));
+						
+						//Reading child elements of a div //////////////////////////////////////////
+//						System.out.println("\n+++++++++++++++  INNER HTML READER - MACHINES +++++++++++++++++++\n");
+//						//Report file
+//						File childElementsList;
+//						String pathTochildElementsList = System.getProperty("user.dir")  + "\\htmlReportsDir\\childElementsList.txt";
+//						childElementsList = new File(pathTochildElementsList);
+//						if (childElementsList.exists()) {
+//							childElementsList.delete();
+////							webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+//							TimeUnit.MILLISECONDS.sleep(20);
+//						};//if
+//						childElementsList.createNewFile();
+//						
+////						webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+//						TimeUnit.MILLISECONDS.sleep(20);
+//						
+//						FileWriter fileWriter = new FileWriter(pathTochildElementsList);
+//						
+//						for (WebElement innerHtml : on_hand_bar) {
+//							List<WebElement> childElems = innerHtml.findElements(By.xpath("./child::*"));
+//							for (WebElement childEl : childElems) {
+//								System.out.println("\n" + childEl.getAttribute("type") + "\n");
+//								System.out.println("\n" + childEl.getText() + "\n");
+//								//Writes into file
+//								fileWriter.write("Child elements:\n" + childEl.getAttribute("type")
+//												+ "\n" + childEl.getText()
+//												+ "\n+++++++++++++++ +++++++++++++++++++ +++++++++++++++++++\n");
+//							};
+//						}//for
+////						webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+//						TimeUnit.MILLISECONDS.sleep(20);
+//						
+//						fileWriter.close();
+//						System.out.println("\n+++++++++++++++ +++++++++++++++++++ +++++++++++++++++++\n");
+						/////////////////////////////////////////////////////////////////////////////////////////////
+						
+//						webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+						TimeUnit.MILLISECONDS.sleep(20);
+						AllDivsList();
+						ProgramFiles.WaitAndNotify.StartWait();
+						
+						//Invokes a function which draws a border around element colored according to validity of this element
+//						TimeUnit.MILLISECONDS.sleep(20);
+//						elementValidation("on_hand_container red_bg", 7);
+//						ProgramFiles.WaitAndNotify.StartWait();
+						
+						
+
+						for (WebElement redDiv : allEmptyDivs) {
+							System.out.println(" \n<<<-&&&&&&&-  redDiv.getCssValue(\"background-color\") is  "+redDiv.getCssValue("background-color")+"  -&&&&&&&->>>\n ");
+							System.out.println(" \n<<<-&&&&&&&-  redDiv.getAttribute(\"class\").toString() is  "+redDiv.getAttribute("class").toString()+"  -&&&&&&&->>>\n ");
+
+//							if (redDiv.getCssValue("background-color").equals("#D84343")) {
+							if (redDiv.getAttribute("class").toString().equals("on_hand_container red_bg")) {
+								System.out.println(" \n@@@@@@@@@@@@@@@@@@@@@@@@ RED DIV OK @@@@@@@@@@@@@@@@@@@@@@@@\n");
+								((JavascriptExecutor)LoginIntoDcs.webDriver)
+								.executeScript("arguments[0].style.border='3px solid #1d6e44'", redDiv);
+								LoginIntoDcs.extentReportFlag = true;
+							} else {
+								System.out.println(" \n>>>>>>>>>>>>>>>>>>>>>> RED DIV FAILED <<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+								((JavascriptExecutor)LoginIntoDcs.webDriver)
+								.executeScript("arguments[0].style.border='3px solid #ff3300'", redDiv);
+								LoginIntoDcs.extentReportFlag = false;
+							};//if
+							//Fires Extent Report
+							LoginIntoDcs.classNameForReport = menu_labels.get(7).getText().toUpperCase();
+							ExtentRepTestReports extentRepTestReports = new ExtentRepTestReports();
+							extentRepTestReports.passedORfailed();
+						};//for
+						
+						
+						
+						
+//						LoginIntoDcs.webDriver.quit();//temp
+//						System.exit(0);//temp
+
+						
+					} else {
+//						List <WebElement> greenFullDivs = LoginIntoDcs.webDriver.findElements(By.cssSelector("div.on_hand_container.green_bg"));
+//						System.out.println(" \n<<<-####-  greenFullDivs.size() =  "+greenFullDivs.size()+"  -####->>>\n ");
+
+//						webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+						TimeUnit.MILLISECONDS.sleep(20);
+						AllDivsList();
+						ProgramFiles.WaitAndNotify.StartWait();						
+						
+						//Invokes a function which draws a border around element colored according to validity of this element
+//						TimeUnit.MILLISECONDS.sleep(20);
+//						elementValidation("on_hand_container green_bg", 6);
+//						ProgramFiles.WaitAndNotify.StartWait();
+						
+						for (WebElement greenDiv : allEmptyDivs) {
+//							System.out.println(" \n<<<-&&&&&&&-  greenDiv.getCssValue(\"background-color\") is  "+greenDiv.getCssValue("background-color").toString()+"  -&&&&&&&->>>\n ");
+//							if (greenDiv.getCssValue("background-color") != "rgba(76, 207, 83, 1)") {
+							if (greenDiv.getAttribute("class").toString().equals("on_hand_container green_bg")) {
+								((JavascriptExecutor)LoginIntoDcs.webDriver)
+								.executeScript("arguments[0].style.border='3px solid #1d6e44'", greenDiv);
+								LoginIntoDcs.extentReportFlag = true;
+							} else {
+								((JavascriptExecutor)LoginIntoDcs.webDriver)
+								.executeScript("arguments[0].style.border='3px solid #1d6e44'", greenDiv);
+								LoginIntoDcs.extentReportFlag = false;
+							};//if
+							
+							//Fires Extent Report
+							LoginIntoDcs.classNameForReport = menu_labels.get(6).getText().toUpperCase();
+							ExtentRepTestReports extentRepTestReports = new ExtentRepTestReports();
+							extentRepTestReports.passedORfailed();
+						};//for
+						
+					};//if
+					
+//					//Clearing list
+//					TimeUnit.MILLISECONDS.sleep(20);
+//					allEmptyDivs.clear();
+					
+					//Run test ng
+					RunTestNG.runTestNg();
+					WaitAndNotify.StartWait();
+					 
+//					webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+					TimeUnit.MILLISECONDS.sleep(20);
+					
+					//Screenshot
+					ProgramFiles.ScreenShotsMaker.ScreenShots(currentLabel, className);
+					WaitAndNotify.StartWait();
+											
+//					webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+					TimeUnit.MILLISECONDS.sleep(20);
+
+					//Probably hovers a mouse over Stock tab
+					String mouseOverScript = "if(document.createEvent){var evObj = document.createEvent('MouseEvents');"
+							+"evObj.initEvent('mouseover', true, false); arguments[0].dispatchEvent(evObj);} "
+							+"else if(document.createEventObject) { arguments[0].fireEvent('onmouseover');}";
+					
+					javascriptExecutor.executeScript(mouseOverScript, stockTab);
+				
+					System.out.println(" <<<-&&& Machine was filled up &&&->>> ");
+				}; //for
+				
+//				webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.SECONDS);
+				TimeUnit.MILLISECONDS.sleep(20);
+				
+				//Appends to HTML report a div containing screenshots 
+				AppendScreenshotsToHTML.AppendNewDiv(className);
+				WaitAndNotify.StartWait();
+
+			} catch (Exception e1) {
+						System.out.println(" <<<-&&& Menu's flow failed. &&&->>> ");
+				e1.printStackTrace();
+				webDriver.quit();
+				System.exit(-1);
+			}
+		}
+		} //try
+
+//		System.out.println(" =========== TEST SETS for MachinesTestCase ENDED ========== ");
+//		WaitAndNotify.NotifyAll();
+//	}//TestSets
+	
+	static Object RemoveNoTextElements (List<WebElement> k_link) {
+		// Removes element with no text
+		for (int ii = 0; ii < k_link.size(); ii++) {
+			WebElement k_link_text = k_link.get(ii);
+			if (k_link_text.getText().length() == 0) {
+				k_link.remove(k_link_text);
+				ii--;
+			}//if
+		};//for
+		System.out.println(" \n<<<-   RemoveNoTextElements: NotifyAll   ->>>\n ");
+		WaitAndNotify.NotifyAll();
+		return k_link;
+	}//RemoveNoTextElements
+	
+	//Confirms the choice by clicking OK button
+	static void ClickOKbutton (String infoString) throws InterruptedException {
+		
+		// Using [JavascriptExecutor] as no other way worked due to permanent overlay of some other element (gray screen) over the desired element.
+		WebElement conf_ok_btn = (WebElement) new FluentWait<WebDriver>(webDriver)
+		        .withTimeout(15,TimeUnit.SECONDS)
+		        .pollingEvery(3, TimeUnit.SECONDS)
+		        .ignoring(Exception.class)
+				.until(ExpectedConditions.elementToBeClickable(By
+				.className("k-widget")
+				.className("k-window-content")
+				.id("conf_ok_btn")));
+		
+		if (conf_ok_btn.isDisplayed()) {
+			webDriver.manage().timeouts().implicitlyWait( 20, TimeUnit.MILLISECONDS);
+			javascriptExecutor.executeScript("arguments[0].click();", conf_ok_btn);
+			System.out.println(" <<<-@@@ Clicking OK button for @@@->>>\n " + infoString);
+			WaitAndNotify.NotifyAll();
+		} else {
+			System.out.println(" No dialog window to interact with. ");
+			actions_.moveToElement(stockTab).build().perform();
+		} //if
+		
+		WaitAndNotify.NotifyAll();
+			
+	}//ClickOKbutton
+	
+	
+	//Makes list of colored divs on screen
+	static List<WebElement> AllDivsList() {
+		System.out.println(" <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  ALL DIVS LIST  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ");
+		//Draws border around the element					
+		List <WebElement> redEmptyDivs = LoginIntoDcs.webDriver.findElements(By.cssSelector("div.on_hand_container.red_bg"));
+		List <WebElement> greenEmptyDivs = LoginIntoDcs.webDriver.findElements(By.cssSelector("div.on_hand_container.green_bg"));
+		allEmptyDivs.addAll(redEmptyDivs);
+		allEmptyDivs.addAll(greenEmptyDivs);
+		System.out.println(" \n<<<-####-  redEmptyDivs.size() =  "+redEmptyDivs.size()+"  -####->>>\n ");
+		System.out.println(" \n<<<-####-  allEmptyDivs.size() =  "+allEmptyDivs.size()+"  -####->>>\n ");
+		
+		WaitAndNotify.NotifyAll();
+		return allEmptyDivs;
+		};//AllDivsList
+		
+	//Selects and draws border around an object
+	static void elementValidation (String classNameString, int entryIndex) throws IOException, InterruptedException {
+		System.out.println(" \n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  ELEMENT VALIDATION  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ");
+
+		System.out.println(" \n((((((((((((((((((((((((((((  allEmptyDivs.size() =  "+allEmptyDivs.size()+"  ))))))))))))))))))))))))))))\n ");
+		
+//		for (WebElement pickDiv : allEmptyDivs) {
+		for(int ii = 0; ii < allEmptyDivs.size(); ii++) {
+			WebElement pickDiv = allEmptyDivs.get(ii);
+
+			for(int i = 0; i < allEmptyDivs.size(); i++) {
+				System.out.println(" ((((((((((((((((((((((( allEmptyDivs "+ allEmptyDivs.get(i).getAttribute("class").toString() +" ))))))))))))))))))))))) ");
+			};//for
+			
+			new FluentWait<WebDriver>(webDriver)
+	        .withTimeout(60,TimeUnit.SECONDS)
+	        .pollingEvery(3, TimeUnit.SECONDS)
+	        .ignoring(Exception.class)
+			.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By
+//					.cssSelector("."+pickDiv.getAttribute("class").toString())));
+			.className(pickDiv.getAttribute("class").toString())));
+			
+//			boolean s
+			for(int i = 0; i < allEmptyDivs.size(); i++) {
+				System.out.println(" ((((((((((((((((((((((( allEmptyDivs "+i+" is ==== "+allEmptyDivs.get(i).getAttribute("class").toString()+ " ))))))))))))))))))))))) ");
+			};//for
+//			boolean staleElement = true; 
+//
+//			while(staleElement){
+//
+//			  try{
+					System.out.println(" \n((((((((((((((((((((((( pickDiv is ==== "+pickDiv.getAttribute("class").toString()+ " )))))))))))))))))))))))\n ");
+					System.out.println(" <<<<<<<<< String classNameString ==== "+classNameString+ ", entryIndex === "+entryIndex+" >>>>>>>>>> ");
+								     
+					System.out.println(" <<<  FROM ELEMENT VALIDATION: allEmptyDivs :::::  "+pickDiv.getAttribute("class").toString()+"  >>> ");
+					if (pickDiv.getAttribute("class").toString().equals(classNameString)) {
+						((JavascriptExecutor)LoginIntoDcs.webDriver)
+						.executeScript("arguments[0].style.border='3px solid #1d6e44'", pickDiv);
+						LoginIntoDcs.extentReportFlag = true;
+					} else {
+						((JavascriptExecutor)LoginIntoDcs.webDriver)
+						.executeScript("arguments[0].style.border='3px solid #1d6e44'", pickDiv);
+						LoginIntoDcs.extentReportFlag = false;
+					};//if
+					
+					//Fires Extent Report
+					LoginIntoDcs.classNameForReport = menu_labels.get(entryIndex).getText().toUpperCase();
+					ExtentRepTestReports extentRepTestReports = new ExtentRepTestReports();
+					extentRepTestReports.passedORfailed();
+					
+//					WaitAndNotify.StartWait();
+					
+//					TimeUnit.SECONDS.sleep(20);
+			     
+			     
+//			     staleElement = false;
+//			  } catch(StaleElementReferenceException e){
+//			    staleElement = true;
+//			  }
+//			}//while
+
+
+		};//for
+		
+		//Clearing list
+		TimeUnit.MILLISECONDS.sleep(20);
+//		allEmptyDivs.removeAll(allEmptyDivs);
+		
+		WaitAndNotify.NotifyAll();
+	}//elementValidation
+		
+	
+}//////////////////////////////////////////////////***END***/////////////////////////////////////////////////////
